@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  lama-model:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./surroundings_data:/app/surroundings_data
+      - ./output:/app/output
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  yolo-model:
+    build:
+      context: .
+      dockerfile: docker/YOLO/Dockerfile
+    volumes:
+      - ./surroundings_data:/app/data
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

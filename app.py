@@ -2,10 +2,9 @@ from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 import torch
-
-# Replace 'YourModelClass' with your model class and 'load_your_model' with your function
-# to load the trained model
-from your_model_module import YourModelClass, load_your_model
+from model.interface import generate_camouflage
+import os
+import subprocess
 
 app = FastAPI()
 
@@ -23,7 +22,7 @@ app.add_middleware(
 )
 
 # Load the model when the application starts
-model = load_your_model("path_to_model_weights.pth")
+model = generate_camouflage("path_to_model_weights.pth")
 model.eval()  # Ensure the model is in evaluation mode
 
 
@@ -35,14 +34,31 @@ async def health_check():
 @app.post("/predict/")
 async def predict(file: UploadFile = File(...)):
     try:
-        input_data = await file.read()
-        tensor_input = process_input(input_data)
+        # Save uploaded file
+        image_path = f"surroundings_data/{file.filename}"
+        mask_path = f"surroundings_data/{file.filename}_mask.png"
 
-        with torch.no_grad():
-            prediction = model(tensor_input)
+        with open(image_path, "wb") as buffer:
+            content = await file.read()
+            buffer.write(content)
 
-        response = post_process_prediction(prediction)
-        return {"prediction": response}
+        # Run YOLO detection to create mask
+        cmd = [
+            "docker", "run",
+            "--gpus", "all",
+            "--rm",
+            "-v", f"{os.getcwd()}/surroundings_data:/app/data",
+            "yolo-model",
+            "python3", "detect.py",
+            f"/app/data/{file.filename}",
+            f"/app/data/{file.filename}_mask.png"
+        ]
+        subprocess.run(cmd, check=True)
+
+        # Run LaMa inpainting
+        result = generate_camouflage(image_path, mask_path)
+
+        return {"result": result.tolist()}
     except Exception as e:
         logger.error(f"Prediction error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
