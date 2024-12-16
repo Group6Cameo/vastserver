@@ -20,10 +20,10 @@ RUN apt-get update && apt-get install -y \
 
 # Set working directory
 WORKDIR /app
+WORKDIR /app/model
 
 # Install Python packages
-RUN pip3 install --no-cache-dir \
-  scikit-survival \
+RUN pip install --no-cache-dir \
   kornia-rs \
   pytorch-lightning \
   hydra-core \
@@ -37,19 +37,20 @@ RUN pip3 install --no-cache-dir \
   albumentations==0.5.2
 
 # Install specific kornia version
-RUN pip3 uninstall kornia -y && \
-  pip3 install kornia --no-dependencies
+RUN pip uninstall kornia -y && \
+  pip install kornia --no-dependencies
 
 # Install OpenCV dependencies correctly
-RUN pip3 uninstall opencv-python-headless -y && \
-  pip3 install --no-cache-dir \
+RUN pip uninstall opencv-python-headless -y && \
+  pip install --no-cache-dir \
   opencv-python \
   opencv-contrib-python \
   opencv-python-headless
 
 # Install LaMa requirements
-WORKDIR /app/lama
-RUN pip3 install -r requirements.txt
+COPY model/lama /app/model/lama
+WORKDIR /app/model
+RUN pip install -r lama/requirements.txt --quiet
 
 # Download and extract the model
 # RUN curl -L $(yadisk-direct https://disk.yandex.ru/d/ouP6l8VJ0HpMZg) -o big-lama.zip && \
