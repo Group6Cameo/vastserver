@@ -23,7 +23,6 @@ WORKDIR /app
 
 # Install Python packages
 RUN pip3 install --no-cache-dir \
-  wldhx.yadisk-direct \
   scikit-survival \
   kornia-rs \
   pytorch-lightning \

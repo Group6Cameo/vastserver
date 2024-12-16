@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   lama-model:
-    build: .
+    image: montijnb/lama-model:latest
     ports:
       - "8000:8000"
     volumes:
@@ -21,9 +21,7 @@ services:
     restart: unless-stopped
 
   yolo-model:
-    build:
-      context: .
-      dockerfile: model/yolo/Dockerfile
+    image: montijnb/yolo-model:latest
     volumes:
       - ./surroundings_data:/app/data
     deploy:
