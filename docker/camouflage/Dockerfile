@@ -15,19 +15,55 @@ RUN apt-get update && apt-get install -y \
   unzip \
   libgl1-mesa-glx \
   libglib2.0-0 \
+  git \
   && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
 
-# Copy requirements and install Python dependencies
-COPY model/init/setup.py .
-RUN pip3 install --no-cache-dir -e .
+# Install Python packages
+RUN pip3 install --no-cache-dir \
+  wldhx.yadisk-direct \
+  scikit-survival \
+  kornia-rs \
+  pytorch-lightning \
+  hydra-core \
+  webdataset \
+  torch \
+  torchvision \
+  torchaudio \
+  torchtext \
+  wget \
+  numpy \
+  albumentations==0.5.2
 
-# Download and extract the model (as done in setup.py)
-RUN curl -LJO https://huggingface.co/smartywu/big-lama/resolve/main/big-lama.zip \
-  && unzip big-lama.zip \
-  && rm big-lama.zip
+# Install specific kornia version
+RUN pip3 uninstall kornia -y && \
+  pip3 install kornia --no-dependencies
+
+# Install OpenCV dependencies correctly
+RUN pip3 uninstall opencv-python-headless -y && \
+  pip3 install --no-cache-dir \
+  opencv-python \
+  opencv-contrib-python \
+  opencv-python-headless
+
+# Install LaMa requirements
+WORKDIR /app/lama
+RUN pip3 install -r requirements.txt
+
+# Download and extract the model
+# RUN curl -L $(yadisk-direct https://disk.yandex.ru/d/ouP6l8VJ0HpMZg) -o big-lama.zip && \
+#   unzip big-lama.zip && \
+#   rm big-lama.zip
+
+# Download additional weights
+RUN curl -LJO https://huggingface.co/smartywu/big-lama/resolve/main/big-lama.zip && \
+  unzip big-lama.zip && \
+  rm big-lama.zip
+
+# Set working directory back to /app
+WORKDIR /app
 
 # Copy the rest of the application
 COPY . .

@@ -1,10 +1,11 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 import logging
-import torch
-from model.interface import generate_camouflage
 import os
 import subprocess
+from model.interface import generate_camouflage
+from pathlib import Path
 
 app = FastAPI()
 
@@ -15,15 +16,60 @@ logger = logging.getLogger(__name__)
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Modify this in production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Load the model when the application starts
-model = generate_camouflage("path_to_model_weights.pth")
-model.eval()  # Ensure the model is in evaluation mode
+# Ensure directories exist
+os.makedirs("surroundings_data", exist_ok=True)
+os.makedirs("output", exist_ok=True)
+
+
+@app.post("/generate-camouflage")
+async def generate_camouflage_pattern(
+    image: UploadFile = File(...),
+    background: UploadFile = File(...)
+):
+    try:
+        # Save uploaded files
+        image_path = f"surroundings_data/{image.filename}"
+        background_path = f"surroundings_data/background_{background.filename}"
+        mask_path = f"surroundings_data/{image.filename}_mask.png"
+
+        # Save uploaded files
+        for file, path in [(image, image_path), (background, background_path)]:
+            with open(path, "wb") as buffer:
+                content = await file.read()
+                buffer.write(content)
+
+        # Run YOLO detection
+        logger.info("Running YOLO detection...")
+        yolo_cmd = [
+            "docker", "run", "--gpus", "all", "--rm",
+            "-v", f"{os.getcwd()}/surroundings_data:/app/data",
+            "yolo-model",
+            "python3", "detect.py",
+            f"/app/data/{image.filename}",
+            f"/app/data/{image.filename}_mask.png"
+        ]
+        subprocess.run(yolo_cmd, check=True)
+
+        # Run LaMa inpainting
+        logger.info("Running LaMa inpainting...")
+        result = generate_camouflage(background_path, mask_path)
+
+        # Clean up
+        for path in [image_path, background_path, mask_path]:
+            if os.path.exists(path):
+                os.remove(path)
+
+        return {"result": result.tolist()}
+
+    except Exception as e:
+        logger.error(f"Error in camouflage generation: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/health")

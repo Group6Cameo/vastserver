@@ -9,23 +9,18 @@ import matplotlib.pyplot as plt
 import base64
 
 
-def generate_camouflage(image_name, mask_name):
+def generate_camouflage(background_image, mask_path):
     """Generate camouflage using the LaMa model"""
-    # Create surroundings_data directory if it doesn't exist
     os.makedirs('./surroundings_data', exist_ok=True)
+    os.makedirs('./output', exist_ok=True)
 
-    # Copy and prepare input image
-    copyfile(image_name, f'./surroundings_data/{image_name}')
-    os.remove(image_name)
-    image_name = f'./surroundings_data/{image_name}'
-
-    # Get image suffix
-    img_suffix = os.path.splitext(image_name)[1].lower()
+    # Prepare background image
+    img_suffix = os.path.splitext(background_image)[1].lower()
     if img_suffix not in ['.png', '.jpg', '.jpeg']:
         raise ValueError(
             f'Unsupported image format: {img_suffix}. Use [.png, .jpeg, .jpg]')
 
-    # Run prediction using Docker
+    # Run LaMa prediction
     cmd = [
         'docker', 'run',
         '--gpus', 'all',
@@ -41,25 +36,14 @@ def generate_camouflage(image_name, mask_name):
 
     subprocess.run(cmd, check=True)
 
-    # Process and display results
-    output_filename = f"/content/output/{os.path.splitext(os.path.basename(image_name))[0]}_mask.png"
-    endresult = plt.imread(output_filename)
+    # Process results
+    output_filename = f"output/{os.path.splitext(os.path.basename(background_image))[0]}_inpainted.png"
+    result = plt.imread(output_filename)
 
-    plt.rcParams['figure.dpi'] = 200
-    plt.imshow(endresult)
-    plt.axis('off')
-    plt.title('endresult')
-    plt.show()
-
-    # Process mask and show inpainting result
-    mask = plt.imread(mask_name)
-    extracted_inpaint = np.zeros_like(endresult)
+    # Apply mask to get final result
+    mask = plt.imread(mask_path)
+    extracted_inpaint = np.zeros_like(result)
     mask_3d = np.repeat(mask[:, :, np.newaxis], 3, axis=2)
-    extracted_inpaint[mask_3d] = endresult[mask_3d]
-
-    plt.imshow(extracted_inpaint)
-    plt.axis('off')
-    plt.title('inpainting result')
-    plt.show()
+    extracted_inpaint[mask_3d] = result[mask_3d]
 
     return extracted_inpaint
