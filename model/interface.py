@@ -20,17 +20,13 @@ def generate_camouflage(background_image, mask_path):
         raise ValueError(
             f'Unsupported image format: {img_suffix}. Use [.png, .jpeg, .jpg]')
 
-    # Run LaMa prediction
+    # Run LaMa prediction directly
     cmd = [
-        'docker', 'run',
-        '--gpus', 'all',
-        '--rm',
-        '-v', f'{os.getcwd()}:/data',
-        'lama-model',
-        'python3', '/app/bin/predict.py',
-        'model.path=/app/big-lama',
-        f'indir=/data/surroundings_data',
-        'outdir=/data/output',
+        'python3',
+        '/app/model/lama/bin/predict.py',
+        'model.path=/app/model/big-lama',
+        f'indir=/app/surroundings_data',
+        'outdir=/app/output',
         f'dataset.img_suffix={img_suffix}'
     ]
 

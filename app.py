@@ -3,9 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 import logging
 import os
-import subprocess
 from model.interface import generate_camouflage
-from pathlib import Path
+from model.YOLO.detect import predict_image
 
 app = FastAPI()
 
@@ -27,41 +26,45 @@ os.makedirs("surroundings_data", exist_ok=True)
 os.makedirs("output", exist_ok=True)
 
 
-@app.post("/generate-camouflage")
+@app.get("/generate-camouflage")
 async def generate_camouflage_pattern(
-    image: UploadFile = File(...),
-    background: UploadFile = File(...)
+    # image: UploadFile = File(...),
+    # background: UploadFile = File(...)
 ):
     try:
         # Save uploaded files
-        image_path = f"surroundings_data/{image.filename}"
-        background_path = f"surroundings_data/background_{background.filename}"
-        mask_path = f"surroundings_data/{image.filename}_mask.png"
+        # image_path = os.path.abspath(f"surroundings_data/{image.filename}")
+        # background_path = os.path.abspath(
+        #     f"surroundings_data/background_{background.filename}")
+        # mask_path = os.path.abspath(
+        #     f"surroundings_data/{image.filename}_mask.png")
+        # annotated_path = os.path.abspath(
+        #     f"surroundings_data/{image.filename}_annotated.png")
 
-        # Save uploaded files
-        for file, path in [(image, image_path), (background, background_path)]:
-            with open(path, "wb") as buffer:
-                content = await file.read()
-                buffer.write(content)
+        # # Save uploaded files
+        # for file, path in [(image, image_path), (background, background_path)]:
+        #     with open(path, "wb") as buffer:
+        #         content = await file.read()
+        #         buffer.write(content)
+        image_path = "surroundings_data/originaltest.jpg"
+        mask_path = image_path.replace(".jpg", "_mask.png")
+        annotated_path = "surroundings_data/annotatedtest.jpg"
 
-        # Run YOLO detection
+        # Run YOLO detection directly
         logger.info("Running YOLO detection...")
-        yolo_cmd = [
-            "docker", "run", "--gpus", "all", "--rm",
-            "-v", f"{os.getcwd()}/surroundings_data:/app/data",
-            "yolo-model",
-            "python3", "detect.py",
-            f"/app/data/{image.filename}",
-            f"/app/data/{image.filename}_mask.png"
-        ]
-        subprocess.run(yolo_cmd, check=True)
+        result = predict_image(image_path, annotated_path)
+
+        if not result:
+            logger.error("YOLO detection failed")
+            raise HTTPException(
+                status_code=500, detail="YOLO detection failed")
 
         # Run LaMa inpainting
         logger.info("Running LaMa inpainting...")
-        result = generate_camouflage(background_path, mask_path)
+        result = generate_camouflage(image_path, mask_path)
 
         # Clean up
-        for path in [image_path, background_path, mask_path]:
+        for path in [image_path, mask_path, annotated_path]:
             if os.path.exists(path):
                 os.remove(path)
 
@@ -75,39 +78,6 @@ async def generate_camouflage_pattern(
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
-
-
-@app.post("/predict/")
-async def predict(file: UploadFile = File(...)):
-    try:
-        # Save uploaded file
-        image_path = f"surroundings_data/{file.filename}"
-        mask_path = f"surroundings_data/{file.filename}_mask.png"
-
-        with open(image_path, "wb") as buffer:
-            content = await file.read()
-            buffer.write(content)
-
-        # Run YOLO detection to create mask
-        cmd = [
-            "docker", "run",
-            "--gpus", "all",
-            "--rm",
-            "-v", f"{os.getcwd()}/surroundings_data:/app/data",
-            "yolo-model",
-            "python3", "detect.py",
-            f"/app/data/{file.filename}",
-            f"/app/data/{file.filename}_mask.png"
-        ]
-        subprocess.run(cmd, check=True)
-
-        # Run LaMa inpainting
-        result = generate_camouflage(image_path, mask_path)
-
-        return {"result": result.tolist()}
-    except Exception as e:
-        logger.error(f"Prediction error: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 def process_input(input_data):
