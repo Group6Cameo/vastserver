@@ -47,6 +47,14 @@ def extract_16_9_region(image, mask):
     # Get the bounding box around the contours
     x, y, w, h = cv2.boundingRect(contours[0])
 
+    # Zoom in by reducing the bounding box size by 20%
+    padding_x = int(w * 0.3)
+    padding_y = int(h * 0.3)
+    x += padding_x // 2
+    y += padding_y // 2
+    w -= padding_x
+    h -= padding_y
+
     # Calculate dimensions for 16:9 region that fits inside the rectangle
     if w/h > 16/9:  # If wider than 16:9
         new_w = int(h * 16/9)  # Use height to determine width

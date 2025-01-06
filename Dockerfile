@@ -36,8 +36,8 @@ RUN pip3 install \
   joblib \
   matplotlib \
   pandas \
-  albumentations==0.5.2 \
-  pytorch-lightning==1.2.9 \
+  albumentations \
+  pytorch-lightning \
   tabulate \
   easydict==1.9.0 \
   kornia==0.5.0 \

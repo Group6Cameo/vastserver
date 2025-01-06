@@ -6,7 +6,6 @@ import os
 from model.interface import generate_camouflage
 from model.YOLO.detect import predict_image
 import cv2
-import io
 
 app = FastAPI()
 
