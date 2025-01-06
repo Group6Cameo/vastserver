@@ -6,15 +6,15 @@ ENV TORCH_HOME=/app/.torch
 ENV PYTHONPATH="/app:/app/model/lama:${PYTHONPATH}"
 
 # # Install system dependencies
-RUN apt-get update && apt-get install -y \
-  python3 \
-  python3-pip \
-  libgl1-mesa-glx \
-  libglib2.0-0 \
-  wget \
-  git \
-  unzip \
-  && rm -rf /var/lib/apt/lists/*
+# RUN apt-get update && apt-get install -y \
+#   python3 \
+#   python3-pip \
+#   libgl1-mesa-glx \
+#   libglib2.0-0 \
+#   wget \
+#   git \
+#   unzip \
+#   && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -22,41 +22,41 @@ WORKDIR /app
 RUN pip3 install numpy==1.26.0
 
 # Install Python packages for both YOLO and LaMa
-RUN pip3 install \
-  fastapi \
-  uvicorn \
-  python-multipart \
-  ultralytics \
-  opencv-python-headless \
-  opencv-python \
-  opencv-contrib-python \
-  torch torchvision \
-  tensorflow \
-  scipy \
-  joblib \
-  matplotlib \
-  pandas \
-  albumentations \
-  pytorch-lightning \
-  tabulate \
-  easydict==1.9.0 \
-  kornia==0.5.0 \
-  webdataset \
-  packaging \
-  gpustat \
-  tqdm \
-  pyyaml \
-  hydra-core
+# RUN pip3 install \
+#   fastapi \
+#   uvicorn \
+#   python-multipart \
+#   ultralytics \
+#   opencv-python-headless \
+#   opencv-python \
+#   opencv-contrib-python \
+#   torch torchvision \
+#   tensorflow \
+#   scipy \
+#   joblib \
+#   matplotlib \
+#   pandas \
+#   albumentations \
+#   pytorch-lightning \
+#   tabulate \
+#   easydict==1.9.0 \
+#   kornia==0.5.0 \
+#   webdataset \
+#   packaging \
+#   gpustat \
+#   tqdm \
+#   pyyaml \
+#   hydra-core
 
 # Create necessary directories
 RUN mkdir -p /app/data /app/model/YOLO/weights /app/surroundings_data /app/output /app/model/big-lama
 
 # Clone and setup LaMa
-RUN git clone https://github.com/advimman/lama.git /app/model/lama && \
-  cd /app/model/lama && \
-  wget https://huggingface.co/smartywu/big-lama/resolve/main/big-lama.zip && \
-  unzip big-lama.zip && \
-  rm big-lama.zip
+# RUN git clone https://github.com/advimman/lama.git /app/model/lama && \
+#   cd /app/model/lama && \
+#   wget https://huggingface.co/smartywu/big-lama/resolve/main/big-lama.zip && \
+#   unzip big-lama.zip && \
+#   rm big-lama.zip
 
 # Copy YOLO files
 COPY ./model/YOLO/detect.py /app/model/YOLO/
