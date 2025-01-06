@@ -29,11 +29,17 @@ def resize_to_16_9(image):
 
 def extract_16_9_region(image, mask):
     """
-    Extracts a 16:9 aspect ratio region from the image based on the shape defined by the mask.
+    Extracts a 16:9 aspect ratio region from within the masked area.
     """
-    # Find contours from the mask
-    grey_mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
-    grey_mask = (grey_mask * 255).astype(np.uint8)  # Convert to 8-bit format
+    # Check if mask is already grayscale (single channel)
+    if len(mask.shape) == 3:
+        grey_mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
+    else:
+        grey_mask = mask
+
+    # Ensure mask is in uint8 format
+    grey_mask = (
+        grey_mask * 255).astype(np.uint8) if grey_mask.dtype != np.uint8 else grey_mask
 
     contours, _ = cv2.findContours(
         grey_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -41,26 +47,19 @@ def extract_16_9_region(image, mask):
     # Get the bounding box around the contours
     x, y, w, h = cv2.boundingRect(contours[0])
 
-    # Calculate target dimensions for 16:9 aspect ratio
-    if w / h > 16 / 9:
-        new_w = w
-        new_h = int(w * 9 / 16)
-    else:
+    # Calculate dimensions for 16:9 region that fits inside the rectangle
+    if w/h > 16/9:  # If wider than 16:9
+        new_w = int(h * 16/9)  # Use height to determine width
         new_h = h
-        new_w = int(h * 16 / 9)
+    else:  # If taller than 16:9
+        new_w = w
+        new_h = int(w * 9/16)  # Use width to determine height
 
-    # Center the 16:9 box around the original bounding box
-    x_center = x + w // 2
-    y_center = y + h // 2
-    x_start = max(0, x_center - new_w // 2)
-    y_start = max(0, y_center - new_h // 2)
-
-    # Ensure the cropping region is within the image boundaries
-    x_end = min(x_start + new_w, image.shape[1])
-    y_end = min(y_start + new_h, image.shape[0])
+    # Calculate starting points to center the 16:9 region
+    x_start = x + (w - new_w) // 2
+    y_start = y + (h - new_h) // 2
 
     # Crop the image to the 16:9 area
-    cropped_image = image[y_start:y_end, x_start:x_end]
+    cropped_image = image[y_start:y_start + new_h, x_start:x_start + new_w]
 
-    # Resize to maintain 16:9 aspect ratio, if necessary
-    return resize_to_16_9(cropped_image)
+    return cropped_image  # No need to resize as it's already 16:9

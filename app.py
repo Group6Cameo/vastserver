@@ -1,10 +1,12 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 import logging
 import os
 from model.interface import generate_camouflage
 from model.YOLO.detect import predict_image
+import cv2
+import io
 
 app = FastAPI()
 
@@ -68,7 +70,16 @@ async def generate_camouflage_pattern(
             if os.path.exists(path):
                 os.remove(path)
 
-        return {"result": result.tolist()}
+        # Convert numpy array to image bytes
+        success, encoded_img = cv2.imencode('.png', result)
+        if not success:
+            raise HTTPException(
+                status_code=500, detail="Failed to encode image")
+
+        # Alternatively, if you want to save the file and return it:
+        output_path = "output/result.png"
+        cv2.imwrite(output_path, result)
+        return FileResponse(output_path, media_type="image/png")
 
     except Exception as e:
         logger.error(f"Error in camouflage generation: {str(e)}")

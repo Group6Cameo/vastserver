@@ -3,7 +3,6 @@ FROM pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
 ENV TORCH_HOME=/app/.torch
-ENV PYTHONPATH="/app"
 ENV PYTHONPATH="/app:/app/model/lama:${PYTHONPATH}"
 
 # # Install system dependencies
@@ -20,11 +19,10 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Install numpy first
-RUN pip3 install numpy
+RUN pip3 install numpy==1.26.0
 
 # Install Python packages for both YOLO and LaMa
 RUN pip3 install \
-  wldhx.yadisk-direct \
   fastapi \
   uvicorn \
   python-multipart \
