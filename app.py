@@ -1,11 +1,11 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, Response
+from fastapi.responses import FileResponse
 import logging
 import os
+import cv2
 from model.interface import generate_camouflage
 from model.YOLO.detect import predict_image
-import cv2
 
 app = FastAPI()
 
@@ -29,27 +29,22 @@ os.makedirs("output", exist_ok=True)
 
 @app.get("/generate-camouflage")
 async def generate_camouflage_pattern(
-    # image: UploadFile = File(...),
-    # background: UploadFile = File(...)
+    image: UploadFile = File(...),
 ):
     try:
         # Save uploaded files
-        # image_path = os.path.abspath(f"surroundings_data/{image.filename}")
-        # background_path = os.path.abspath(
-        #     f"surroundings_data/background_{background.filename}")
-        # mask_path = os.path.abspath(
-        #     f"surroundings_data/{image.filename}_mask.png")
-        # annotated_path = os.path.abspath(
-        #     f"surroundings_data/{image.filename}_annotated.png")
+        print("hier")
+        image_path = os.path.abspath(f"surroundings_data/{image.filename}")
+        base_name = os.path.splitext(image.filename)[0]
+        mask_path = os.path.abspath(
+            f"surroundings_data/{base_name}_mask.png")
+        annotated_path = os.path.abspath(
+            f"surroundings_data/{image.filename}_annotated.png")
 
-        # # Save uploaded files
-        # for file, path in [(image, image_path), (background, background_path)]:
-        #     with open(path, "wb") as buffer:
-        #         content = await file.read()
-        #         buffer.write(content)
-        image_path = "surroundings_data/originaltest.jpg"
-        mask_path = image_path.replace(".jpg", "_mask.png")
-        annotated_path = "surroundings_data/annotatedtest.jpg"
+        # Save uploaded file
+        with open(image_path, "wb") as buffer:
+            content = await image.read()
+            buffer.write(content)
 
         # Run YOLO detection directly
         logger.info("Running YOLO detection...")
@@ -65,9 +60,9 @@ async def generate_camouflage_pattern(
         result = generate_camouflage(image_path, mask_path)
 
         # Clean up
-        for path in [image_path, mask_path, annotated_path]:
-            if os.path.exists(path):
-                os.remove(path)
+        # for path in [image_path, mask_path, annotated_path]:
+        #     if os.path.exists(path):
+        #         os.remove(path)
 
         # Convert numpy array to image bytes
         success, encoded_img = cv2.imencode('.png', result)
