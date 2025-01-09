@@ -37,11 +37,16 @@ def generate_camouflage(background_image, mask_path):
 
     # Process results
     output_filename = f"output/{os.path.splitext(os.path.basename(background_image))[0]}_mask.png"
-    result = plt.imread(output_filename)
+    result = cv2.imread(output_filename)
     print("results ready")
 
-    mask = plt.imread(mask_path)
+    # Use cv2.imread instead of plt.imread for mask, and convert to grayscale if needed
+    mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
+    if mask is None:
+        raise ValueError(f"Could not read mask from {mask_path}")
+    mask = mask / 255.0  # Normalize to [0,1]
     print("mask")
+
     extracted_inpaint = np.zeros_like(result)
     print("extracted")
     # Convert mask to boolean array
@@ -51,9 +56,6 @@ def generate_camouflage(background_image, mask_path):
     extracted_inpaint[mask_3d] = result[mask_3d]
     print(np.unique(extracted_inpaint))
     print("returns")
-
-    # Convert from [0,1] float to [0,255] uint8
-    extracted_inpaint = (extracted_inpaint * 255).astype(np.uint8)
 
     mask_uint8 = (mask * 255).astype(np.uint8)
     final_result = extract_16_9_region(extracted_inpaint, mask_uint8)
