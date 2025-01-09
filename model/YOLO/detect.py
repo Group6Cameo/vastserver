@@ -3,13 +3,14 @@ import cv2
 import numpy as np
 import sys
 import argparse
+import os
 
 
 def predict_image(image_path, annotated_path):
     try:
         # Load trained model
         model = YOLO('model/YOLO/weights/best.pt')
-        mask_path = image_path.replace(".jpg", "_mask.png")
+        mask_path = os.path.splitext(image_path)[0] + "_mask.png"
 
         # Read original image
         original_img = cv2.imread(image_path)
