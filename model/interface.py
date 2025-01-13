@@ -60,6 +60,13 @@ def generate_camouflage(background_image, mask_path):
     mask_uint8 = (mask * 255).astype(np.uint8)
     final_result = extract_16_9_region(extracted_inpaint, mask_uint8)
 
-    cv2.imwrite('/app/output/testsave.png', final_result)
+    # Resize to 2560x1440 (16:9)
+    target_width = 2560
+    target_height = 1440  # 16:9 ratio
 
-    return final_result
+    upscaled_result = cv2.resize(
+        final_result, (target_width, target_height), interpolation=cv2.INTER_LANCZOS4)
+
+    cv2.imwrite('/app/output/testsave.png', upscaled_result)
+
+    return upscaled_result

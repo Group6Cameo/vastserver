@@ -22,7 +22,7 @@ def predict_image(image_path, annotated_path):
         # Make predictions
         results = model.predict(
             source=image_path,
-            conf=0.05,
+            conf=0.5,
             show=False
         )
 
