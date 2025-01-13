@@ -4,6 +4,7 @@ from fastapi.responses import FileResponse
 import logging
 import os
 import cv2
+import numpy as np
 from model.interface import generate_camouflage
 from model.YOLO.detect import predict_image
 
@@ -33,18 +34,34 @@ async def generate_camouflage_pattern(
 ):
     try:
         # Save uploaded files
-        print("hier")
         image_path = os.path.abspath(f"surroundings_data/{image.filename}")
+
+        # Save uploaded file and read content
+        content = await image.read()
+        with open(image_path, "wb") as buffer:
+            buffer.write(content)
+
+        # Check file size and resize if necessary (targeting ~800KB)
+        if os.path.getsize(image_path) > 800000:  # 800KB in bytes
+            img = cv2.imread(image_path)
+            h, w = img.shape[:2]
+
+            # Calculate new size while maintaining aspect ratio
+            target_pixels = 1000000  # Target ~1M pixels
+            scale = np.sqrt(target_pixels / (h * w))
+            new_h = int(h * scale)
+            new_w = int(w * scale)
+
+            # Resize image
+            resized = cv2.resize(img, (new_w, new_h),
+                                 interpolation=cv2.INTER_AREA)
+            cv2.imwrite(image_path, resized)
+
         base_name = os.path.splitext(image.filename)[0]
         mask_path = os.path.abspath(
             f"surroundings_data/{base_name}_mask.png")
         annotated_path = os.path.abspath(
             f"surroundings_data/{image.filename}_annotated.png")
-
-        # Save uploaded file
-        with open(image_path, "wb") as buffer:
-            content = await image.read()
-            buffer.write(content)
 
         # Run YOLO detection directly
         logger.info("Running YOLO detection...")
@@ -71,7 +88,7 @@ async def generate_camouflage_pattern(
                 status_code=500, detail="Failed to encode image")
 
         # Alternatively, if you want to save the file and return it:
-        output_path = "output/result.png"
+        output_path = "/app/output/result.png"
         cv2.imwrite(output_path, result)
         return FileResponse(output_path, media_type="image/png")
 
