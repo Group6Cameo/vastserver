@@ -60,6 +60,10 @@ RUN git clone https://github.com/Group6Cameo/lama.git /app/model/lama && \
   cd /app/model/lama && \
   wget https://huggingface.co/smartywu/big-lama/resolve/main/big-lama.zip && \
   unzip big-lama.zip && \
+  rm big-lama.zip && \
+  cd /app/model/big-lama && \
+  wget https://huggingface.co/smartywu/big-lama/resolve/main/big-lama.zip && \
+  unzip big-lama.zip && \
   rm big-lama.zip
 
 # RUN pip install -r /app/model/lama/requirements.txt
