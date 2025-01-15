@@ -3,6 +3,7 @@ FROM pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
 ENV TORCH_HOME=/app/.torch
+ENV PYTHONPATH=${PYTHONPATH:-}
 ENV PYTHONPATH="/app:/app/model/lama:${PYTHONPATH}"
 
 # # Install system dependencies
@@ -50,7 +51,7 @@ RUN pip3 install \
   scikit-image \
   scikit-learn
 
-RUN pip install -r requirements.txt
+
 
 # Create necessary directories
 RUN mkdir -p /app/data /app/model/YOLO/weights /app/surroundings_data /app/output /app/model/big-lama
@@ -61,6 +62,8 @@ RUN git clone https://github.com/Group6Cameo/lama.git /app/model/lama && \
   wget https://huggingface.co/smartywu/big-lama/resolve/main/big-lama.zip && \
   unzip big-lama.zip && \
   rm big-lama.zip
+
+RUN pip install -r /app/model/lama/requirements.txt
 
 # Copy YOLO files
 COPY ./model/YOLO/detect.py /app/model/YOLO/
