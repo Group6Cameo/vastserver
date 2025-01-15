@@ -48,7 +48,7 @@ RUN pip3 install \
   pyyaml \
   hydra-core \
   scikit-image \
-  sklearn
+  scikit-learn
 
 RUN pip install -r requirements.txt
 
@@ -56,7 +56,7 @@ RUN pip install -r requirements.txt
 RUN mkdir -p /app/data /app/model/YOLO/weights /app/surroundings_data /app/output /app/model/big-lama
 
 # Clone and setup LaMa
-RUN git clone https://github.com/advimman/lama.git /app/model/lama && \
+RUN git clone https://github.com/Group6Cameo/lama.git /app/model/lama && \
   cd /app/model/lama && \
   wget https://huggingface.co/smartywu/big-lama/resolve/main/big-lama.zip && \
   unzip big-lama.zip && \
