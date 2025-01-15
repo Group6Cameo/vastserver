@@ -36,8 +36,8 @@ RUN pip3 install \
   joblib \
   matplotlib \
   pandas \
-  albumentations \
-  pytorch-lightning \
+  albumentations==0.5.2 \
+  pytorch-lightning==1.2.9 \
   tabulate \
   easydict==1.9.0 \
   kornia==0.5.0 \
@@ -62,7 +62,7 @@ RUN git clone https://github.com/Group6Cameo/lama.git /app/model/lama && \
   unzip big-lama.zip && \
   rm big-lama.zip
 
-RUN pip install -r /app/model/lama/requirements.txt
+# RUN pip install -r /app/model/lama/requirements.txt
 
 # Copy YOLO files
 COPY ./model/YOLO/detect.py /app/model/YOLO/
