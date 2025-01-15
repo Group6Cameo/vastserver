@@ -3,8 +3,7 @@ FROM pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
 ENV TORCH_HOME=/app/.torch
-ENV PYTHONPATH=${PYTHONPATH:-}
-ENV PYTHONPATH="/app:/app/model/lama:${PYTHONPATH}"
+ENV PYTHONPATH=/app:/app/model/lama
 
 # # Install system dependencies
 RUN apt-get update && apt-get install -y \
