@@ -39,7 +39,7 @@ The LaMa model is configured for:
 ## Performance Notes
 
 - GPU with 24GB ram, or 2 with 12 each is recommended. By default it uses 2, otherwise edit the config in lama/configs/prediction. To use only one, set `gpu_ids` to 0.
-- Model preloading improves response time.
+- Model preloading improves response time. (~2s on most GPU's)
 - Processing time varies with image size and mask complexity.
 
 ## API Usage
