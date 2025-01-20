@@ -5,7 +5,7 @@ import logging
 import os
 import cv2
 import numpy as np
-from model.interface import generate_camouflage
+from model.interface import generate_camouflage, lama_model
 from model.YOLO.detect import predict_image
 
 app = FastAPI()
@@ -26,6 +26,14 @@ app.add_middleware(
 # Ensure directories exist
 os.makedirs("surroundings_data", exist_ok=True)
 os.makedirs("output", exist_ok=True)
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize the model when the app starts"""
+    logger.info("Loading LaMa model...")
+    lama_model.load()
+    logger.info("LaMa model loaded successfully")
 
 
 @app.get("/generate-camouflage")

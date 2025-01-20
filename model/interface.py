@@ -9,6 +9,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import base64
 from model.utils.camouflage_utils import extract_16_9_region
+from saicinpainting.training.trainers import load_checkpoint
+from omegaconf import OmegaConf
+import yaml
+import torch
+from model.lama.bin.predict import process_predict
 
 
 def generate_camouflage(background_image, mask_path):
@@ -16,24 +21,31 @@ def generate_camouflage(background_image, mask_path):
     os.makedirs('./surroundings_data', exist_ok=True)
     os.makedirs('./output', exist_ok=True)
 
-    # Prepare background image
-    img_suffix = os.path.splitext(background_image)[1].lower()
-    if img_suffix not in ['.png', '.jpg', '.jpeg']:
-        raise ValueError(
-            f'Unsupported image format: {img_suffix}. Use [.png, .jpeg, .jpg]')
+    # Get the preloaded model and device
+    model, device = lama_model.get_model()
 
-    # Run LaMa prediction directly
-    cmd = [
-        'python3',
-        '/app/model/lama/bin/predict.py',
-        # 'refine=True',
-        'model.path=/app/model/big-lama',
-        f'indir=/app/surroundings_data',
-        'outdir=/app/output',
-        f'dataset.img_suffix={img_suffix}'
-    ]
+    # Create a complete predict config
+    predict_config = OmegaConf.create({
+        'indir': '/app/surroundings_data',
+        'outdir': '/app/output',
+        'model': {
+            'path': '/app/model/big-lama',
+            'checkpoint': 'best.ckpt'
+        },
+        'dataset': {
+            'kind': 'default',
+            'img_suffix': os.path.splitext(background_image)[1].lower(),
+            'pad_out_to_modulo': 8
+        },
+        'device': 'cuda' if torch.cuda.is_available() else 'cpu',
+        'out_key': 'inpainted',
+        'refine': False,
+        'out_ext': '.png'
+    })
 
-    subprocess.run(cmd, check=True)
+    # Run prediction using the preloaded model
+    process_predict(predict_config, preloaded_model=model,
+                    preloaded_device=device)
 
     # Process results
     output_filename = f"output/{os.path.splitext(os.path.basename(background_image))[0]}_mask.png"
@@ -70,3 +82,40 @@ def generate_camouflage(background_image, mask_path):
     cv2.imwrite('/app/output/testsave.png', upscaled_result)
 
     return upscaled_result
+
+
+class LamaModel:
+    def __init__(self):
+        self.model = None
+        self.device = None
+
+    def load(self):
+        if self.model is not None:
+            return
+
+        device_name = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = torch.device(device_name)
+
+        # Load configuration
+        train_config_path = '/app/model/big-lama/config.yaml'
+        with open(train_config_path, 'r') as f:
+            train_config = OmegaConf.create(yaml.safe_load(f))
+
+        train_config.training_model.predict_only = True
+        train_config.visualizer.kind = 'noop'
+
+        # Load model
+        checkpoint_path = '/app/model/big-lama/models/best.ckpt'
+        self.model = load_checkpoint(
+            train_config, checkpoint_path, strict=False, map_location=device_name)
+        self.model.freeze()
+        self.model.to(self.device)
+
+    def get_model(self):
+        if self.model is None:
+            self.load()
+        return self.model, self.device
+
+
+# Create a global instance
+lama_model = LamaModel()
