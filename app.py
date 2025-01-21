@@ -85,9 +85,9 @@ async def generate_camouflage_pattern(
         result = generate_camouflage(image_path, mask_path)
 
         # Clean up
-        # for path in [image_path, mask_path, annotated_path]:
-        #     if os.path.exists(path):
-        #         os.remove(path)
+        for path in [image_path, mask_path, annotated_path]:
+            if os.path.exists(path):
+                os.remove(path)
 
         # Convert numpy array to image bytes
         success, encoded_img = cv2.imencode('.png', result)
