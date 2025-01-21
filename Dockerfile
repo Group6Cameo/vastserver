@@ -64,8 +64,8 @@ RUN git clone https://github.com/Group6Cameo/lama.git /app/model/lama && \
   cd /app/model/ && \
   wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 --continue --tries=0 https://huggingface.co/smartywu/big-lama/resolve/main/big-lama.zip && \
   unzip big-lama.zip && \
-  rm big-lama.zip \
-  cd /app
+  rm big-lama.zip && \
+  cd ..
 
 # RUN pip install -r /app/model/lama/requirements.txt
 
@@ -84,4 +84,4 @@ COPY ./surroundings_data/ /app/surroundings_data/
 EXPOSE 8000
 
 # Start the FastAPI application
-# CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
