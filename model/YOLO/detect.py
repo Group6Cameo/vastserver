@@ -1,3 +1,15 @@
+"""
+YOLO-based object detection module for camouflage generation.
+
+This module implements object detection using YOLOv8 to identify regions
+suitable for camouflage pattern generation. It processes input images to
+create binary masks and annotated visualizations of detected objects.
+
+The module uses a custom-trained YOLO model optimized for identifying
+cameo's calibration screen. Detection results are used
+to create masks for the subsequent inpainting process.
+"""
+
 from ultralytics import YOLO
 import cv2
 import numpy as np
@@ -7,6 +19,24 @@ import os
 
 
 def predict_image(image_path, annotated_path):
+    """
+    Perform object detection and generate masks using YOLOv8.
+
+    Processes an input image using a pre-trained YOLO model to detect objects,
+    generates a binary mask of detected regions, and creates an annotated
+    visualization of the detections.
+
+    Args:
+        image_path (str): Path to input image
+        annotated_path (str): Path where annotated image will be saved
+
+    Returns:
+        bool: True if processing successful, False otherwise
+
+    Side Effects:
+        - Creates a binary mask file at {image_path}_mask.png
+        - Creates an annotated image at annotated_path
+    """
     try:
         # Load trained model
         model = YOLO('model/YOLO/weights/best.pt')

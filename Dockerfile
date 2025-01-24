@@ -1,3 +1,23 @@
+# Dockerfile for Camouflage Generation Pipeline
+#
+# This Dockerfile creates a containerized environment optimized for running the
+# camouflage generation pipeline on vast.ai GPU instances. It includes both
+# YOLO object detection and LaMa inpainting models in a single container.
+#
+# Usage on vast.ai:
+# 1. Create instance with:
+#    - Min 24GB GPU RAM (or 2x12GB)
+#    - CUDA 12.4 support
+#    - Ubuntu 22.04 base
+# 2. Run on the instance:
+#    uvicorn app:app --host 0.0.0.0 --port 8000
+#
+# Environment Variables:
+# - DEBIAN_FRONTEND=noninteractive: Prevents interactive prompts during build
+# - PYTHONUNBUFFERED=1: Ensures real-time logging
+# - TORCH_HOME=/app/.torch: Persistent model storage
+# - PYTHONPATH=/app:/app/model/lama: Module resolution paths
+
 FROM pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime
 
 ENV DEBIAN_FRONTEND=noninteractive

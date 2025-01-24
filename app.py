@@ -1,3 +1,29 @@
+"""
+FastAPI server for AI-powered camouflage pattern generation.
+
+This server combines YOLO object detection and LaMa image inpainting to generate
+camouflage patterns from input images. The pipeline consists of:
+1. Object detection using YOLOv8 to identify and mask objects
+2. LaMa inpainting to generate contextually appropriate patterns
+3. Post-processing to extract and format the final camouflage pattern
+
+The server provides RESTful endpoints for image processing and health monitoring,
+with built-in CORS support and error handling.
+
+Environment Variables:
+    TORCH_HOME: Path to PyTorch model cache
+    PYTHONPATH: Project root directory
+    CUDA_VISIBLE_DEVICES: GPU device selection (optional)
+
+Requirements:
+    - 2 CUDA-capable GPU's (24GB RAM recommended), to use only one, set `gpu_ids` to 0.
+    - Python 3.11+
+    - Dependencies listed in requirements.txt
+
+
+To run the api, use: uvicorn app:app --host 0.0.0.0 --port 8000
+"""
+
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -40,6 +66,27 @@ async def startup_event():
 async def generate_camouflage_pattern(
     image: UploadFile = File(...),
 ):
+    """
+    Generate a camouflage pattern from an input image using AI models.
+
+    The function performs the following steps:
+    1. Saves and optionally resizes the input image (~800KB target size)
+    2. Runs YOLO object detection to create the object mask
+    3. Applies LaMa inpainting to generate the camouflage pattern
+    4. Post-processes the result to 16:9 aspect ratio (2560x1440)
+
+    Args:
+        image (UploadFile): Input image file uploaded through FastAPI
+
+    Returns:
+        FileResponse: PNG image file containing the generated camouflage pattern
+
+    Raises:
+        HTTPException: If image processing fails at any stage
+            - 500: YOLO detection failure
+            - 500: Image encoding failure
+            - 500: General processing errors
+    """
     try:
         # Save uploaded files
         image_path = os.path.abspath(f"surroundings_data/{image.filename}")

@@ -1,3 +1,19 @@
+"""
+Interface module for AI camouflage generation using LaMa inpainting.
+
+This module provides the core functionality for generating camouflage patterns
+using the LaMa (Large Mask) inpainting model. It handles model initialization,
+inference, and result processing.
+
+The module maintains a singleton instance of the LaMa model to improve
+performance through model preloading. It supports both CPU and CUDA execution,
+with automatic device selection based on availability.
+
+Key Components:
+    - LamaModel: Singleton class for model management
+    - generate_camouflage: Main function for camouflage generation
+"""
+
 from shutil import copyfile
 import shutil
 import subprocess
@@ -17,7 +33,25 @@ from model.lama.bin.predict import process_predict
 
 
 def generate_camouflage(background_image, mask_path):
-    """Generate camouflage using the LaMa model"""
+    """
+    Generate camouflage pattern using LaMa inpainting on masked regions.
+
+    Takes an input image and its corresponding mask, applies the LaMa inpainting
+    model to generate contextually appropriate patterns, and extracts the
+    inpainted regions in a 16:9 aspect ratio.
+
+    Args:
+        background_image (str): Path to the input image
+        mask_path (str): Path to the binary mask image
+
+    Returns:
+        numpy.ndarray: Generated camouflage pattern as a BGR image array,
+                      resized to 2560x1440 (16:9)
+
+    Raises:
+        ValueError: If mask file cannot be read
+        RuntimeError: If model inference fails
+    """
     os.makedirs('./surroundings_data', exist_ok=True)
     os.makedirs('./output', exist_ok=True)
 
@@ -85,11 +119,49 @@ def generate_camouflage(background_image, mask_path):
 
 
 class LamaModel:
+    """
+    Singleton class managing the LaMa inpainting model instance.
+
+    This class serves as the primary entry point for model operations in interface.py,
+    maintaining a single preloaded model instance to improve inference performance.
+    It handles model initialization, device management, and provides access to the
+    model for the generate_camouflage function.
+
+    The model is loaded lazily on first access and remains in memory for subsequent
+    calls. It automatically selects CUDA if available, falling back to CPU if necessary.
+
+    Attributes:
+        model: The loaded LaMa model instance
+        device: torch.device indicating whether using CUDA or CPU
+
+    Usage:
+        # Global instance is created in interface.py
+        lama_model = LamaModel()
+
+        # Get model and device for inference
+        model, device = lama_model.get_model()
+    """
+
     def __init__(self):
         self.model = None
         self.device = None
 
     def load(self):
+        """
+        Load the LaMa model and initialize it on the appropriate device.
+
+        This method handles:
+        - Device selection (CUDA/CPU)
+        - Configuration loading from configs/prediction/default.yaml
+        - Model checkpoint loading
+        - Model preparation (freezing weights, moving to device)
+
+        The model is configured for inference-only mode with visualizations disabled
+        for optimal performance.
+
+        Raises:
+            RuntimeError: If model checkpoint or config cannot be loaded
+        """
         if self.model is not None:
             return
 
@@ -112,6 +184,17 @@ class LamaModel:
         self.model.to(self.device)
 
     def get_model(self):
+        """
+        Retrieve the loaded model and its device.
+
+        Ensures the model is loaded before returning it by calling load()
+        if necessary. This method is the main interface used by generate_camouflage()
+        to access the model for inference.
+
+        Returns:
+            tuple: (model, device) where model is the loaded LaMa model instance
+                  and device is the torch.device it's loaded on
+        """
         if self.model is None:
             self.load()
         return self.model, self.device

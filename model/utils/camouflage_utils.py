@@ -1,3 +1,15 @@
+"""
+Utility functions for camouflage pattern processing.
+
+This module provides helper functions for processing and formatting
+camouflage patterns, including region extraction, aspect ratio
+adjustment, and image manipulation utilities.
+
+The utilities focus on maintaining proper aspect ratios and
+extracting relevant regions from processed images while preserving
+quality and maintaining consistent output formats.
+"""
+
 import cv2
 import numpy as np
 
@@ -47,7 +59,7 @@ def extract_16_9_region(image, mask):
     # Get the bounding box around the contours
     x, y, w, h = cv2.boundingRect(contours[0])
 
-    # Zoom in by reducing the bounding box size by 20%
+    # Zoom in by reducing the bounding box size by 30%
     padding_x = int(w * 0.3)
     padding_y = int(h * 0.3)
     x += padding_x // 2
