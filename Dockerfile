@@ -68,7 +68,10 @@ RUN pip3 install \
   pyyaml \
   hydra-core \
   scikit-image \
-  scikit-learn
+  scikit-learn \
+  basicsr \
+  realesrgan \
+  gfpgan
 
 
 
@@ -85,7 +88,8 @@ RUN git clone https://github.com/Group6Cameo/lama.git /app/model/lama && \
   wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 --continue --tries=0 https://huggingface.co/smartywu/big-lama/resolve/main/big-lama.zip && \
   unzip big-lama.zip && \
   rm big-lama.zip && \
-  cd ..
+  cd .. \
+  wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 --continue --tries=0 https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESRGAN_x4plus.pth -O /app/models/RealESRGAN_x4plus.pth
 
 # RUN pip install -r /app/model/lama/requirements.txt
 

@@ -97,12 +97,12 @@ async def generate_camouflage_pattern(
             buffer.write(content)
 
         # Check file size and resize if necessary (targeting ~800KB)
-        if os.path.getsize(image_path) > 2000000:  # 800KB in bytes
+        if os.path.getsize(image_path) > 1500000:  # 800KB in bytes
             img = cv2.imread(image_path)
             h, w = img.shape[:2]
 
             # Calculate new size while maintaining aspect ratio
-            target_pixels = 2000000  # Target ~1M pixels
+            target_pixels = 1500000  # Target ~1M pixels
             scale = np.sqrt(target_pixels / (h * w))
             new_h = int(h * scale)
             new_w = int(w * scale)
