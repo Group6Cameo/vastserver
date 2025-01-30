@@ -93,6 +93,9 @@ RUN git clone https://github.com/Group6Cameo/lama.git /app/model/lama && \
 
 # RUN pip install -r /app/model/lama/requirements.txt
 
+# Fix for RealESRGAN
+RUN sed -i 's/from torchvision.transforms.functional_tensor import rgb_to_grayscale/from torchvision.transforms.functional import rgb_to_grayscale/' /opt/conda/lib/python3.11/site-packages/basicsr/data/degradations.py
+
 # Copy YOLO files
 COPY ./model/YOLO/detect.py /app/model/YOLO/
 COPY ./model/YOLO/weights/best.pt /app/model/YOLO/weights/
