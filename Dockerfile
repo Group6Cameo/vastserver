@@ -78,6 +78,8 @@ RUN pip3 install \
 # Create necessary directories
 RUN mkdir -p /app/data /app/model/YOLO/weights /app/surroundings_data /app/output /app/model/big-lama /app/models
 
+RUN wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 --continue --tries=0 https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESRGAN_x4plus.pth -O /app/models/RealESRGAN_x4plus.pth
+
 # Clone and setup LaMa
 RUN git clone https://github.com/Group6Cameo/lama.git /app/model/lama && \
   cd /app/model/lama && \
@@ -88,8 +90,7 @@ RUN git clone https://github.com/Group6Cameo/lama.git /app/model/lama && \
   wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 --continue --tries=0 https://huggingface.co/smartywu/big-lama/resolve/main/big-lama.zip && \
   unzip big-lama.zip && \
   rm big-lama.zip && \
-  cd .. \
-  wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 --continue --tries=0 https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESRGAN_x4plus.pth -O /app/models/RealESRGAN_x4plus.pth
+  cd ..
 
 # RUN pip install -r /app/model/lama/requirements.txt
 
