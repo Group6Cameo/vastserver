@@ -13,10 +13,17 @@ This server processes images to generate camouflage patterns using a combination
    - Fills masked areas with contextually appropriate patterns
    - Pre-loaded model for efficient processing
 
-3. **Post-processing**
+3. **Super-Resolution (RealESRGAN)**
+   - Upscales the inpainted regions using RealESRGAN 4x model
+   - Enhances detail and quality of the generated patterns
+   - Falls back to traditional upscaling methods if needed
+
+4. **Post-processing**
    - Extracts the inpainted regions
    - Resizes to 16:9 aspect ratio (2560x1440)
    - Outputs the final camouflage pattern
+
+
 
 ## Setup
 
@@ -33,14 +40,14 @@ This server processes images to generate camouflage patterns using a combination
 The LaMa model is configured for:
 - Input padding: 8px modulo
 - Device: CUDA if available, CPU fallback
-- No refinement pass
+- Refinement enabled
 - Pre-loaded model instance for faster inference
 
 ## Performance Notes
 
 - GPU with 24GB ram, or 2 with 12 each is recommended. By default it uses 2, otherwise edit the config in lama/configs/prediction. To use only one, set `gpu_ids` to 0.
-- Model preloading improves response time. (~2s on most GPU's)
-- Processing time varies with image size and mask complexity.
+- Model preloading improves response time. (~2s on most GPU's without refinement, ~20s with refinement)
+- Processing time varies with image size.
 
 ## API Usage
 

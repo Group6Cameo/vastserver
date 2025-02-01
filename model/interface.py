@@ -43,8 +43,6 @@ from model.lama.bin.predict import process_predict
 from basicsr.archs.rrdbnet_arch import RRDBNet
 from realesrgan import RealESRGANer
 
-# ---------- Added Super Resolution Implementation ----------
-
 
 class SuperResolutionWrapper:
     """
@@ -75,7 +73,7 @@ class SuperResolutionWrapper:
             'cuda' if torch.cuda.is_available() else 'cpu')
         model = RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64,
                         num_block=23, num_grow_ch=32, scale=4)
-        model_path = '/app/models/RealESRGAN_x4plus.pth'  # Update this path if needed
+        model_path = '/app/models/RealESRGAN_x4plus.pth'
 
         # Initialize the upsampler
         self.upsampler = RealESRGANer(
@@ -125,8 +123,6 @@ def smart_upscale(image, target_size):
                         interpolation=cv2.INTER_LANCZOS4)
     kernel = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]])
     return cv2.filter2D(result, -1, kernel)
-
-# ---------- Original Code with Enhancements ----------
 
 
 def generate_camouflage(background_image, mask_path):
@@ -203,7 +199,6 @@ def generate_camouflage(background_image, mask_path):
     mask_uint8 = (mask * 255).astype(np.uint8)
     final_result = extract_16_9_region(extracted_inpaint, mask_uint8)
 
-    # ---------- Enhanced Upscaling Section ----------
     target_size = (2560, 1440)
 
     try:
